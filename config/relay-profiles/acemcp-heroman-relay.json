@@ -1,0 +1,33 @@
+{
+  "id": "acemcp-heroman-relay",
+  "baseUrlDefault": "https://acemcp.heroman.wtf/relay/",
+  "allowedPaths": [
+    "/get-models",
+    "/prompt-enhancer",
+    "/agents/list-remote-tools",
+    "/find-missing",
+    "/batch-upload",
+    "/checkpoint-blobs",
+    "/agents/codebase-retrieval",
+    "/record-request-events",
+    "/report-error"
+  ],
+  "ssePaths": ["/chat-stream"],
+  "notes": {
+    "/prompt-enhancer": "当前 relay 可用（用于 prompt-enhancer）",
+    "/chat-stream": "仅用于 prompt-enhancer（当前 relay 行为）；若 403 通常是 token/订阅/权限问题。",
+    "/notifications/read": "返回 404，说明 relay 未实现 notifications 路由（或权限策略隐藏）；需 server 端补齐，本项目不做降级/兜底。",
+    "/notifications/mark-as-read": "同 notifications/read；若返回 404 需 relay 实现对应 notifications 路由。",
+    "/remote-agents/list-stream": "日志观察：404；可能 relay 未实现/未开启 Remote Agents 能力。",
+    "/subscription-banner": "日志观察：404；常伴随 Failed to get subscription banner（可能未实现或权限不足）。",
+    "/get-credit-info": "日志观察：404；上游会映射为 User has no subscription（更可能是未实现或权限不足）。",
+    "/record-session-events": "日志观察：404；若 relay 仍是旧端点 /record-request-events，需要 server 端对齐（本项目不做降级/兜底）。",
+    "/report-feature-vector": "日志观察：404；可能未实现或禁用 telemetry 上报。",
+    "/client-metrics": "日志观察：404；可能未实现或禁用 telemetry 上报。",
+    "/completion": "日志观察：404；该 relay 可能不提供 completion（或受订阅/权限控制）。",
+    "/chat-input-completion": "日志观察：404；该 relay 可能不提供 chat-input-completion（或受订阅/权限控制）。",
+    "/next-edit-stream": "日志观察：404；Next Edit 相关能力可能未实现（或受订阅/权限控制）。",
+    "/find-missing": "日志观察：404；若依赖该能力，需要 relay 支持对应路由。",
+    "/report-error": "日志观察：可能超时；建议检查 relay 端超时/负载/限流。"
+  }
+}

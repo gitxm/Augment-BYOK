@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="{{CSP}}" />
+  <title>Augment BYOK Settings</title>
+  <style nonce="{{NONCE}}">
+    /* --- 全局变量与重置 --- */
+    :root {
+      --font-mono: "SF Mono", Monaco, Menlo, Consolas, monospace;
+      --radius-base: 2px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      
+      /* 状态颜色映射 */
+      --color-success: var(--vscode-testing-iconPassed, #89d185);
+      --color-warning: var(--vscode-testing-iconQueued, #cca700);
+      --color-error: var(--vscode-errorForeground);
+      --color-border: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+      --bg-input: var(--vscode-input-background);
+      --fg-input: var(--vscode-input-foreground);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-editor-background);
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      line-height: 1.5;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    /* --- 布局容器 --- */
+    .app-container {
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: var(--spacing-lg) 24px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+
+    /* --- 通用原子类 --- */
+    .hidden { display: none !important; }
+    .text-mono { font-family: var(--font-mono); font-size: 0.9em; }
+    .text-muted { color: var(--vscode-descriptionForeground); font-size: 0.9em; }
+    .text-xs { font-size: 0.85em; }
+    
+    .flex-row { display: flex; align-items: center; gap: var(--spacing-sm); }
+    .flex-between { justify-content: space-between; }
+    .flex-end { justify-content: flex-end; }
+    .flex-wrap { flex-wrap: wrap; }
+    .w-full { width: 100%; }
+
+    /* --- 组件：面板 (Panel) --- */
+    .settings-panel {
+      background-color: var(--vscode-editorWidget-background);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-base);
+      overflow: hidden;
+    }
+
+    .settings-panel__header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background-color: var(--vscode-sideBarSectionHeader-background);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .settings-panel__body {
+      padding: var(--spacing-md);
+    }
+
+    /* --- 组件：表单元素 --- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .form-grid--full { grid-column: 1 / -1; }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      font-size: 0.9em;
+      color: var(--vscode-foreground);
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    input[type="url"],
+    input[type="search"],
+    select,
+    textarea {
+      background-color: var(--bg-input);
+      color: var(--fg-input);
+      border: 1px solid var(--vscode-input-border, var(--vscode-dropdown-border));
+      padding: 6px 8px;
+      border-radius: var(--radius-base);
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+      outline-offset: -1px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--vscode-input-placeholderForeground);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Checkbox 自定义 */
+    .checkbox-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    input[type="checkbox"] {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--vscode-checkbox-border);
+      background: var(--vscode-checkbox-background);
+      border-radius: 3px;
+      position: relative;
+    }
+    input[type="checkbox"]:checked {
+      background: var(--vscode-checkbox-background);
+      border-color: var(--vscode-focusBorder);
+    }
+    input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--vscode-checkbox-foreground);
+      font-size: 14px;
+    }
+
+    /* --- 组件：按钮 --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 12px;
+      border: 1px solid var(--vscode-button-border, transparent);
+      border-radius: var(--radius-base);
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: all 0.2s;
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+
+    .btn:hover { background-color: var(--vscode-button-secondaryHoverBackground); }
+
+    .btn--primary {
+      background-color: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+    .btn--primary:hover { background-color: var(--vscode-button-hoverBackground); }
+
+    .btn--danger { color: var(--color-error); }
+    .btn--danger:hover { background-color: var(--vscode-inputValidation-errorBackground); }
+
+    .btn--icon { padding: 4px; line-height: 1; }
+    
+    .btn--small { font-size: 0.85em; padding: 2px 8px; border: 1px solid var(--color-border); }
+
+    /* --- 组件：状态徽章 (Badge) --- */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      border: 1px solid var(--color-border);
+      color: var(--vscode-descriptionForeground);
+      white-space: nowrap;
+      height: 20px;
+    }
+
+    .status-badge--success { border-color: var(--color-success); color: var(--color-success); }
+    .status-badge--warning { border-color: var(--color-warning); color: var(--color-warning); }
+    .status-badge--error { border-color: var(--color-error); color: var(--color-error); }
+
+    /* --- 特定区域：Header --- */
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: var(--spacing-lg);
+      gap: var(--spacing-md);
+    }
+
+    .app-title h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    /* --- 特定区域：Provider 列表 (手风琴) --- */
+    .provider-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .provider-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-base);
+      background-color: var(--vscode-editor-background);
+    }
+
+    .provider-card__header {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .provider-card__header:hover { background-color: var(--vscode-list-hoverBackground); }
+
+    .provider-card.is-expanded .provider-card__header {
+      border-bottom: 1px solid var(--color-border);
+      background-color: var(--vscode-list-inactiveSelectionBackground, var(--vscode-sideBarSectionHeader-background));
+    }
+
+    .provider-card__content-wrapper {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.2s ease-out;
+    }
+    
+    .provider-card.is-expanded .provider-card__content-wrapper { grid-template-rows: 1fr; }
+    
+    .provider-card__body {
+      overflow: hidden;
+      background-color: var(--vscode-editorWidget-background);
+    }
+    
+    .provider-card__inner { padding: var(--spacing-md); }
+
+    .icon-chevron {
+      display: inline-block;
+      transition: transform 0.2s;
+      margin-right: 6px;
+      font-size: 0.8em;
+    }
+    .provider-card.is-expanded .icon-chevron { transform: rotate(90deg); }
+
+    /* 新增 Provider 面板 */
+    .add-provider-panel {
+      background-color: var(--vscode-editorWidget-background);
+      border: 1px solid var(--vscode-focusBorder);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      border-radius: var(--radius-base);
+    }
+
+    /* --- 特定区域：路由表格 --- */
+    .table-responsive {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .routing-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+      min-width: 560px; /* 避免过分压缩 */
+    }
+
+    .routing-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background-color: var(--vscode-sideBarSectionHeader-background);
+      color: var(--vscode-descriptionForeground);
+      font-weight: normal;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .routing-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+    }
+
+    .routing-table tr:last-child td { border-bottom: none; }
+
+    /* 表格列宽控制 */
+    .col-feature { width: 34%; }
+    .col-mode { width: 14%; }
+    .col-provider { width: 22%; }
+    .col-model { width: 30%; }
+
+    /* Toast 通知 */
+    #toast-notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 10px 16px;
+      background-color: var(--vscode-notifications-background);
+      color: var(--vscode-notifications-foreground);
+      border: 1px solid var(--vscode-notifications-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 4px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    #toast-notification.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+
+    <header class="app-header">
+      <div class="app-title">
+        <h1>
+          Augment BYOK
+          <span class="status-badge">schema v1</span>
+          <span id="badge-adapter-status" class="status-badge" title="本地适配器状态">BYOK: --</span>
+          <span id="badge-chat-status" class="status-badge" title="主面板模型注入状态">Model Picker: --</span>
+        </h1>
+        <p class="text-muted" style="margin: 4px 0 0 0;">配置存于 VS Code 安全存储（globalState + secrets），不再读取 Settings。</p>
+      </div>
+
+      <div class="header-actions flex-row">
+        <label class="checkbox-wrapper" title="开启或关闭整个插件功能">
+          <input type="checkbox" id="check-plugin-enabled">
+          <span>启用插件</span>
+        </label>
+        <button type="button" id="btn-reload" class="btn">刷新配置</button>
+        <button type="button" id="btn-save-all" class="btn btn--primary">保存配置</button>
+      </div>
+    </header>
+
+    <section class="settings-panel">
+      <header class="settings-panel__header">
+        <div class="flex-row">
+          <span>Augment Proxy 设置</span>
+          <span id="badge-proxy-config" class="status-badge">--</span>
+          <span id="badge-proxy-test" class="status-badge">未测试</span>
+        </div>
+        <button type="button" id="btn-test-proxy" class="btn btn--small">测试连接</button>
+      </header>
+      <div class="settings-panel__body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="input-augment-base-url">Base URL (服务基地址)</label>
+            <input type="url" id="input-augment-base-url" placeholder="例如：https://tenant.augmentcode.com/" />
+            <div id="text-effective-url" class="text-muted text-mono text-xs" style="white-space: pre-wrap;"></div>
+          </div>
+          <div class="form-group">
+            <div class="flex-between flex-row">
+              <label class="form-label">API Token</label>
+              <span id="badge-token-status" class="status-badge text-xs">未设置</span>
+            </div>
+            <div class="flex-row">
+              <input type="password" id="input-augment-token" placeholder="输入以更新 Token..." />
+              <button type="button" id="btn-clear-augment-token" class="btn btn--danger btn--icon" title="清除 Token">✕</button>
+            </div>
+            <span class="text-muted text-xs">Token 安全存储于 VS Code Secrets，不会明文回显。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-panel">
+      <header class="settings-panel__header">
+        <span>模型提供商 (Model Providers)</span>
+        <button type="button" id="btn-show-add-provider" class="btn btn--primary btn--small">+ 新增 Provider</button>
+      </header>
+      <div class="settings-panel__body">
+        
+        <div id="region-add-provider" class="add-provider-panel hidden">
+          <div class="flex-between flex-row" style="margin-bottom: 12px;">
+            <strong class="text-xs">添加新提供商</strong>
+            <button type="button" id="btn-cancel-add-provider" class="btn btn--icon">✕</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">ID (唯一标识)</label>
+              <input type="text" id="input-new-provider-id" placeholder="例如: deepseek, azure-us..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">类型 (Kind)</label>
+              <select id="select-new-provider-kind">
+                <option value="openaiCompatible">OpenAI Compatible (通用)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+              </select>
+            </div>
+            <div class="form-group form-grid--full flex-end">
+              <button type="button" id="btn-confirm-add-provider" class="btn btn--primary">确认添加</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="container-providers-list" class="provider-list">
+          <div class="text-muted" style="text-align: center; padding: 20px;">
+            暂无 Provider，请点击右上角新增。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-panel">
+      <header class="settings-panel__header">
+        功能路由规则 (Routing Rules)
+      </header>
+      <div class="settings-panel__body">
+        <div class="form-grid" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label class="form-label" for="select-active-provider">默认 Provider (activeProviderId)</label>
+            <select id="select-active-provider"></select>
+            <div class="text-muted text-xs">未设置时：按 Providers 列表顺序自动选第一个；可按 endpoint 覆盖。</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="routing-table" id="table-routing">
+            <colgroup>
+              <col class="col-feature">
+              <col class="col-mode">
+              <col class="col-provider">
+              <col class="col-model">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Endpoint</th>
+                <th>模式</th>
+                <th>Provider</th>
+                <th>Model</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-routing">
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-panel">
+      <header class="settings-panel__header">全局默认参数</header>
+      <div class="settings-panel__body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="input-default-temp">默认 Temperature</label>
+            <input type="number" id="input-default-temp" step="0.1" placeholder="例如: 0.2" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-default-max">默认 MaxTokens</label>
+            <input type="number" id="input-default-max" step="1" placeholder="留空为自动" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="toast-notification">配置已保存</div>
+
+</body>
+</html>

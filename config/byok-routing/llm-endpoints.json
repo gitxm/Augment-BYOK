@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "endpoints": [
+    "/get-models",
+    "/prompt-enhancer",
+    "/chat",
+    "/chat-stream",
+    "/completion",
+    "/edit",
+    "/chat-input-completion",
+    "/instruction-stream",
+    "/next-edit-stream",
+    "/smart-paste-stream",
+    "/generate-commit-message-stream",
+    "/generate-conversation-title",
+    "/next_edit_loc"
+  ],
+  "notes": {
+    "purpose": "用于把“可由 LLM 实现/替代”的上游端点单独列出来（给 relay/工具链做分类与对照），不代表 profile 已支持。"
+  }
+}

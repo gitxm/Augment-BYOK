@@ -1,0 +1,22 @@
+{
+  "name": "augment-byok-internal-vsix",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Build internal VSIX by patching upstream augment.vscode-augment",
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "build:payload": "node tools/entry/payload-build/build-payload.js",
+    "build:vsix": "node tools/entry/payload-build/build-payload.js && node tools/entry/vsix-build-pipeline/build-vsix.js",
+    "upstream:sync": "node tools/entry/vsix-upstream-sync/sync.js",
+    "upstream:analyze": "node tools/entry/upstream-analysis/analyze.js",
+    "check:matrix": "node tools/entry/endpoint-coverage/endpoint-coverage.js",
+    "check:get-models": "node tools/entry/get-models-audit/get-models-report.js",
+    "check:get-models:acemcp": "node tools/entry/get-models-audit/get-models-report.js --base-url https://acemcp.heroman.wtf/relay/ --token ace_ada5efed41203b3e6711d60038f594ce23a39124",
+    "test:relay": "node tools/entry/relay-profiles/relay-smoke.js",
+    "test:relay:acemcp": "node tools/entry/relay-profiles/relay-smoke.js --profile config/relay-profiles/acemcp-heroman-relay.json --base-url https://acemcp.heroman.wtf/relay/ --token ace_ada5efed41203b3e6711d60038f594ce23a39124"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3"
+  }
+}

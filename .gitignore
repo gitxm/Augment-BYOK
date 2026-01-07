@@ -1,0 +1,12 @@
+# 构建产物/缓存
+dist/
+.cache/
+tmp/
+node_modules/
+
+.vscode/
+.ace-tool/
+
+# 本地指令/规格（不纳入 git）
+AGENTS.md
+/openspec/
